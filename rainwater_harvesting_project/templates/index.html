@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rainwater Harvesting Calculator</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>Rainwater Harvesting System</h1>
+
+    <div id="form-container" {% if data %} style="display:none;" {% endif %}>
+        <form method="POST" id="main-form">
+            <label>Area in India (Bengaluru Region):</label>
+            <select name="area" required>
+                <option value="">-- Select Area --</option>
+                <option value="Bengaluru" {% if data and data.area=="Bengaluru" %}selected{% endif %}>Bengaluru</option>
+                <option value="Whitefield" {% if data and data.area=="Whitefield" %}selected{% endif %}>Whitefield</option>
+                <option value="Electronic City" {% if data and data.area=="Electronic City" %}selected{% endif %}>Electronic City</option>
+                <option value="Hebbal" {% if data and data.area=="Hebbal" %}selected{% endif %}>Hebbal</option>
+                <option value="Jayanagar" {% if data and data.area=="Jayanagar" %}selected{% endif %}>Jayanagar</option>
+                <option value="Koramangala" {% if data and data.area=="Koramangala" %}selected{% endif %}>Koramangala</option>
+                <option value="Yelahanka" {% if data and data.area=="Yelahanka" %}selected{% endif %}>Yelahanka</option>
+            </select><br>
+
+            <label>Roof Area (m²):</label>
+            <input type="number" name="roof_area" step="0.1" required value="{{ data.roof_area if data }}"><br>
+
+            <label>Annual Rainfall (mm):</label>
+            <input type="number" name="rainfall" step="0.1" required value="{{ data.rainfall if data }}"><br>
+
+            <label>Roof Type:</label>
+            <select id="roof_type" name="roof_type" onchange="setRunoffCoefficient()" required>
+                <option value="">-- Select Roof Type --</option>
+                <option value="Concrete" {% if data and data.roof_type=="Concrete" %}selected{% endif %}>Concrete</option>
+                <option value="Tiled" {% if data and data.roof_type=="Tiled" %}selected{% endif %}>Tiled</option>
+                <option value="Brick" {% if data and data.roof_type=="Brick" %}selected{% endif %}>Brick</option>
+            </select><br>
+
+            <input type="hidden" id="runoff_coeff" name="runoff_coeff" value="{{ data.runoff_coeff if data }}">
+
+            <label>Daily Water Requirement (liters):</label>
+            <input type="number" name="daily_need" step="0.1" required value="{{ data.daily_need if data }}"><br>
+
+            <label>Storage Days (e.g., 90 for 3 months):</label>
+            <input type="number" name="days" required value="{{ data.days if data }}"><br>
+
+            <button type="submit" name="action" value="calculate">Calculate</button>
+        </form>
+    </div>
+
+    {% if data %}
+    <div id="result-container" class="result">
+        <h2>Results:</h2>
+        <p><strong>Area:</strong> {{ data['area'] }}</p>
+        <p><strong>Roof Type:</strong> {{ data['roof_type'] }} (Runoff Coefficient: {{ data['runoff_coeff'] }})</p>
+        <p><strong>Total Rainwater Harvested per Year:</strong> {{ "%.2f"|format(data['harvested_volume']) }} liters</p>
+        <p><strong>Total Requirement for {{ data['days'] }} days:</strong> {{ "%.2f"|format(data['required_volume']) }} liters</p>
+        <p><strong>Suggested Tank Size:</strong> {{ "%.2f"|format(data['suggested_tank']) }} liters</p>
+
+        <h3>Overflow System</h3>
+        <p>{{ data['overflow_desc'] }}</p>
+
+        <h3>Filtration System</h3>
+        <p>{{ data['filtration_desc'] }}</p>
+
+        <!-- Download Report form -->
+        <form method="POST">
+            <input type="hidden" name="area" value="{{ data['area'] }}">
+            <input type="hidden" name="roof_area" value="{{ data['roof_area'] }}">
+            <input type="hidden" name="rainfall" value="{{ data['rainfall'] }}">
+            <input type="hidden" name="roof_type" value="{{ data['roof_type'] }}">
+            <input type="hidden" name="daily_need" value="{{ data['daily_need'] }}">
+            <input type="hidden" name="days" value="{{ data['days'] }}">
+            <button type="submit" name="action" value="download">Download Report</button>
+        </form>
+
+        <!-- View Rain Map -->
+        <form action="/map">
+            <button type="submit">View Rain Map</button>
+        </form>
+
+        <button id="calculate-again-btn">Calculate Again</button>
+    </div>
+    {% endif %}
+
+<script>
+function setRunoffCoefficient() {
+    const roofType = document.getElementById("roof_type").value;
+    const runoffInput = document.getElementById("runoff_coeff");
+    const runoffMap = {
+        "Concrete": 0.85,
+        "Tiled": 0.75,
+        "Brick": 0.65
+    };
+    runoffInput.value = runoffMap[roofType] || 0.75;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById("calculate-again-btn");
+    if(btn){
+        btn.addEventListener("click", function(){
+            document.getElementById("result-container").style.display = "none";
+            document.getElementById("form-container").style.display = "block";
+        });
+    }
+});
+</script>
+
+</body>
+</html>
