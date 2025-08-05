@@ -33,10 +33,4 @@ Where:
 
 ---
 
-## 🚀 How to Run
 
-### 1. Clone or Download the Project
-
-```bash
-git clone https://github.com/your-username/rainwater-calculator.git
-cd rainwater-calculator
